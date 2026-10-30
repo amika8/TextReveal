@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms is only used for the notification area icon. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\TextReveal.ico</ApplicationIcon>
+    <AssemblyName>TextReveal</AssemblyName>
+    <RootNamespace>TextReveal</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- Required by the [LibraryImport] source generator (blittable P/Invoke marshalling). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- WFO0003: the high-DPI settings are intentionally declared in app.manifest for the WPF windows. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    One file to download: self-contained (no .NET install needed), single-file, compressed, x64.
+    dotnet publish -c Release
+
+    ReadyToRun is off on purpose: pre-compiling the runtime adds about 17 MB to the download (the
+    exe goes from ~73 MB to ~89 MB) to save a few hundred milliseconds on the very first start of a
+    tray application, which is then started once per session.
+  -->
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>none</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Embedded so the exe, the window and the tray icon all share the same bitmap. -->
+    <Resource Include="Assets\TextReveal.ico" />
+  </ItemGroup>
+
+</Project>

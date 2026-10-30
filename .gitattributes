@@ -1,0 +1,17 @@
+# Keep the repository text-based and stable across machines.
+# Git stores LF in the index and checks Windows sources out with CRLF.
+* text=auto eol=crlf
+
+*.cs      text diff=csharp
+*.xaml    text
+*.csproj  text
+*.props   text
+*.slnx    text
+*.md      text eol=lf
+*.ps1     text eol=crlf
+
+*.png     binary
+*.gif     binary
+*.ico     binary
+*.exe     binary
+*.dll     binary

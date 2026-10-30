@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <!-- Recommended .NET analyzers: the whole quality ruleset, warnings only (the build stays clean). -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <Company>TextReveal</Company>
+    <Product>TextReveal</Product>
+    <AssemblyTitle>TextReveal</AssemblyTitle>
+    <!-- Keep the product version readable (1.0.0) instead of appending the commit SHA to it. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Authors>amika8</Authors>
+    <RepositoryUrl>https://github.com/amika8/TextReveal</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>

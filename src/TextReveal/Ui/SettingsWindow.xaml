@@ -1,0 +1,109 @@
+<Window x:Class="TextReveal.Ui.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TextReveal - Settings"
+        Width="520"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}"
+        Foreground="{StaticResource PrimaryTextBrush}"
+        FontFamily="{StaticResource AppFontFamily}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        PreviewKeyDown="OnPreviewKeyDown">
+
+    <StackPanel Margin="24,22,24,20">
+
+        <!-- Header -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+            <Border Width="38"
+                    Height="38"
+                    CornerRadius="11"
+                    Background="{StaticResource AccentBrush}"
+                    VerticalAlignment="Center">
+                <TextBlock Text="&#xE721;"
+                           FontFamily="{StaticResource IconFontFamily}"
+                           FontSize="18"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="TextReveal" FontSize="20" FontWeight="SemiBold" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Global shortcut -->
+        <Border Style="{StaticResource SettingsCardStyle}">
+            <StackPanel>
+                <TextBlock Text="Global shortcut" Style="{StaticResource SectionTitleStyle}" />
+
+                <Button x:Name="ShortcutButton"
+                        Margin="0,14,0,0"
+                        Style="{StaticResource HotKeyButtonStyle}"
+                        Click="OnShortcutButtonClick"
+                        LostKeyboardFocus="OnShortcutButtonLostFocus" />
+
+                <TextBlock x:Name="ShortcutHint" Style="{StaticResource SectionDescriptionStyle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Windows startup -->
+        <Border Style="{StaticResource SettingsCardStyle}">
+            <StackPanel>
+                <TextBlock Text="Startup" Style="{StaticResource SectionTitleStyle}" />
+
+                <CheckBox x:Name="StartupCheckBox"
+                          Margin="0,14,0,0"
+                          Style="{StaticResource SettingsCheckBoxStyle}"
+                          Content="Start TextReveal with Windows" />
+
+                <TextBlock x:Name="StartupHint"
+                           Style="{StaticResource SectionDescriptionStyle}"
+                           Visibility="Collapsed" />
+            </StackPanel>
+        </Border>
+
+        <!-- OCR language -->
+        <Border Style="{StaticResource SettingsCardStyle}">
+            <StackPanel>
+                <TextBlock Text="Recognition language (OCR)" Style="{StaticResource SectionTitleStyle}" />
+
+                <ComboBox x:Name="OcrLanguageBox"
+                          Margin="0,14,0,0"
+                          Style="{StaticResource SettingsComboBoxStyle}" />
+
+                <TextBlock x:Name="OcrLanguageHint" Style="{StaticResource SectionDescriptionStyle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Status + actions -->
+        <TextBlock x:Name="StatusText"
+                   MinHeight="18"
+                   Margin="2,2,2,12"
+                   FontSize="12.5"
+                   TextWrapping="Wrap"
+                   Foreground="{StaticResource SecondaryTextBrush}" />
+
+        <DockPanel LastChildFill="False">
+            <Button DockPanel.Dock="Left"
+                    Content="Reset"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Click="OnResetClick" />
+
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Close"
+                        Margin="0,0,10,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Click="OnCloseClick" />
+                <Button Content="Save"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        IsDefault="True"
+                        Click="OnSaveClick" />
+            </StackPanel>
+        </DockPanel>
+    </StackPanel>
+</Window>
