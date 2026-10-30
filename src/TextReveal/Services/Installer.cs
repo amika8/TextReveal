@@ -167,7 +167,11 @@ internal static class Installer
     }
 
     /// <summary>Starts the installed copy, the one the shortcuts point at.</summary>
-    public static bool TryStartInstalled(out string error)
+    /// <param name="arguments">
+    /// Switches for the new process, so it can pick up where this one left off (the settings page
+    /// after a first install, for instance).
+    /// </param>
+    public static bool TryStartInstalled(IReadOnlyList<string> arguments, out string error)
     {
         error = string.Empty;
 
@@ -177,6 +181,7 @@ internal static class Installer
             {
                 UseShellExecute = true,
                 WorkingDirectory = InstallDirectory,
+                Arguments = string.Join(' ', arguments),
             });
 
             if (process is null)

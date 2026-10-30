@@ -44,6 +44,12 @@ public sealed partial class InstallWindow : Window
     /// <summary>True when the installed copy has to take over from the one that is running now.</summary>
     public bool RestartRequired => Installed && !Installer.IsRunningInstalled;
 
+    /// <summary>
+    /// True when this page just installed TextReveal for the first time, as opposed to updating a
+    /// copy that was already in the install folder: only a first install leads to the settings.
+    /// </summary>
+    public bool FirstInstall => Installed && !_isUpdate;
+
     private void OnInstallClick(object sender, RoutedEventArgs e)
     {
         var options = new InstallOptions(

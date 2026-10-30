@@ -135,8 +135,13 @@ public partial class OverlayWindow : Window
 
         try
         {
-            // Bitmap copy + OCR run off the UI thread: the overlay stays perfectly responsive.
-            _words = await Task.Run(() => _ocr.RecognizeAsync(_snapshot.Image, cancellationToken), cancellationToken);
+            // Bitmap copy, preprocessing and OCR run off the UI thread: the overlay stays perfectly
+            // responsive. Results show up pass after pass, so a match appears long before the
+            // lettering passes are done.
+            _words = await Task.Run(
+                () => _ocr.RecognizeAsync(_snapshot.Image, Publish, cancellationToken),
+                cancellationToken);
+
             _recognitionCompleted = true;
             ApplyFilter();
         }
@@ -151,6 +156,23 @@ public partial class OverlayWindow : Window
         }
     }
 
+    /// <summary>
+    /// Shows everything the OCR has read so far. Called on the recognition thread after every pass,
+    /// so the highlight layer fills in progressively instead of waiting for the last one.
+    /// </summary>
+    private void Publish(IReadOnlyList<RecognizedWord> words) =>
+        _ = Dispatcher.InvokeAsync(
+            () =>
+            {
+                if (_isClosed)
+                {
+                    return;
+                }
+
+                _words = words;
+                ApplyFilter();
+            });
+
     private void ApplyFilter()
     {
         _matches = WordMatcher.Find(_words, SearchBox.Text);
@@ -161,12 +183,14 @@ public partial class OverlayWindow : Window
 
     /// <summary>
     /// Counts the matches themselves, not the rectangles: a phrase spread over three words is one
-    /// result, exactly like a browser find bar.
+    /// result, exactly like a browser find bar. Two passes reading the same word twice show up as
+    /// one match, since they highlight the same place on screen.
     /// </summary>
     private static int CountHits(List<WordMatch> matches)
     {
         var hits = 0;
         var previous = -1;
+        var counted = new List<Rect>();
 
         foreach (var match in matches)
         {
@@ -176,29 +200,37 @@ public partial class OverlayWindow : Window
             }
 
             previous = match.Hit;
+
+            if (IsAlreadyCounted(match.Word.Bounds, counted))
+            {
+                continue;
+            }
+
+            counted.Add(match.Word.Bounds);
             hits++;
         }
 
         return hits;
     }
 
-    private void UpdateMatchCount()
+    private static bool IsAlreadyCounted(Rect bounds, List<Rect> counted)
     {
-        if (!_recognitionCompleted)
+        foreach (var other in counted)
         {
-            ShowMatchCount(string.Empty, found: false);
-            return;
+            if (SharesPlace(bounds, other))
+            {
+                return true;
+            }
         }
 
+        return false;
+    }
+
+    private void UpdateMatchCount()
+    {
         if (!_ocr.IsAvailable)
         {
             ShowMatchCount("OCR unavailable", found: false);
-            return;
-        }
-
-        if (_words.Count == 0)
-        {
-            ShowMatchCount("No text detected", found: false);
             return;
         }
 
@@ -209,15 +241,23 @@ public partial class OverlayWindow : Window
             return;
         }
 
-        // The number the user came for: the occurrences of the query, not the rectangles drawn.
-        ShowMatchCount(
-            _hitCount switch
-            {
-                0 => "No match",
-                1 => "1 match",
-                _ => $"{_hitCount} matches",
-            },
-            found: _hitCount > 0);
+        // Matches are announced as soon as a pass finds them, the counter then grows pass by pass.
+        if (_hitCount > 0)
+        {
+            ShowMatchCount(
+                _hitCount == 1 ? "1 match" : $"{_hitCount} matches",
+                found: true);
+            return;
+        }
+
+        // Zero hits only means "no match" once there is nothing left to read.
+        if (!_recognitionCompleted)
+        {
+            ShowMatchCount(string.Empty, found: false);
+            return;
+        }
+
+        ShowMatchCount(_words.Count == 0 ? "No text detected" : "No match", found: false);
     }
 
     /// <summary>
@@ -422,13 +462,43 @@ public partial class OverlayWindow : Window
         var selected = new List<RecognizedWord>();
         foreach (var word in _words)
         {
-            if (IsSelected(word.Bounds, selection))
+            if (IsSelected(word.Bounds, selection) && !IsAlreadySelected(word, selected))
             {
                 selected.Add(word);
             }
         }
 
         return selected;
+    }
+
+    /// <summary>
+    /// True when the same place is already in the selection. Each OCR pass can read one word, with
+    /// a different result; the frames would be drawn twice and the copy would repeat the word.
+    /// </summary>
+    private static bool IsAlreadySelected(RecognizedWord candidate, List<RecognizedWord> selected)
+    {
+        foreach (var word in selected)
+        {
+            if (SharesPlace(candidate.Bounds, word.Bounds))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>True when both rectangles cover more than half of the smaller one.</summary>
+    private static bool SharesPlace(Rect left, Rect right)
+    {
+        var intersection = Rect.Intersect(left, right);
+        if (intersection.IsEmpty)
+        {
+            return false;
+        }
+
+        var smaller = Math.Min(left.Width * left.Height, right.Width * right.Height);
+        return smaller > 0d && intersection.Width * intersection.Height / smaller > 0.5d;
     }
 
     private static bool IsSelected(Rect word, Rect selection)

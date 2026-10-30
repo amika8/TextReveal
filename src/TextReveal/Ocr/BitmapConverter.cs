@@ -31,4 +31,15 @@ internal static class BitmapConverter
         var buffer = CryptographicBuffer.CreateFromByteArray(pixels);
         return SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Premultiplied);
     }
+
+    /// <summary>
+    /// Copies grey levels into a <see cref="SoftwareBitmap"/> in Gray8. The enhanced passes only
+    /// carry ink, and an enlarged screen holds nine times its pixels: read as Bgra8, the three copies
+    /// between the buffer and the engine would cost a few hundred megabytes for nothing.
+    /// </summary>
+    public static SoftwareBitmap ToSoftwareBitmap(byte[] grey, int width, int height)
+    {
+        var buffer = CryptographicBuffer.CreateFromByteArray(grey);
+        return SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Gray8, width, height);
+    }
 }

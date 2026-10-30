@@ -22,6 +22,12 @@ Press the shortcut (`Ctrl + Alt + F` by default) to freeze the screen, allowing 
   <img src="assets/select.gif" width="820" alt="Framing text on a page that refuses to be selected, then copying it">
 </p>
 
+The screen is read in several passes: once as it is, once three times bigger and contrast-stretched so
+small labels and captions clear the size below which the engine segments nothing, then twice reduced
+to its bright and to its warm lettering, which pulls heavy outlined text out of a photo (a video
+thumbnail, a poster, a game banner). The search forgives the characters OCR usually mixes up: `0` and
+`O`, `1`, `l` and `I`, `5` and `S`, `8` and `B`, `2` and `Z`, `6` and `G`.
+
 ## Download
 
 Go to [Releases](https://github.com/amika8/TextReveal/releases/latest) page and download the latest TextReveal.exe.
@@ -53,6 +59,7 @@ Needs Windows 10 version 2004 or newer (11 is fine) and at least one OCR languag
 | `Enter` or `Esc` | closes the overlay |
 | Double click the tray icon | runs the search again |
 | Right click the tray icon | search, settings, install shortcuts, quit |
+| First start | asks once where to install, then opens the settings window |
 
 The screen is captured before anything is analysed, so a paused video or a game stays readable while you search it.
 
@@ -84,6 +91,7 @@ If another app already owns your shortcut, TextReveal falls back to `Ctrl + Shif
 | Windows says the app is unknown | not code signed. `More info`, then `Run anyway` |
 | The shortcut does nothing | another app owns it. TextReveal notifies you and falls back to one of the alternatives above |
 | Nothing is highlighted | install an OCR language in Windows: settings, time and language, language and region, then the language options |
+| A word you can see is never found | the Windows OCR engine reads print typography best: hand writing and decorative logos can stay unreadable. Drag a box around it instead |
 
 ## License
 

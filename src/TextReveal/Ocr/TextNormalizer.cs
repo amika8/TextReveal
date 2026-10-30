@@ -51,6 +51,44 @@ internal static class TextNormalizer
 
         return new NormalizedText(builder.ToString(), [.. origins]);
     }
+
+    /// <summary>
+    /// Maps the characters OCR confuses onto one class, so a search finds what the eye sees:
+    /// <c>$456,000</c> matches a read of <c>$456,OOO</c>, <c>SQULD</c>, <c>1O</c> or <c>5URVIVED</c>.
+    /// One character in, one character out, so the source map of a word stays valid.
+    /// </summary>
+    public static string Fold(string value)
+    {
+        if (value.Length == 0)
+        {
+            return value;
+        }
+
+        var builder = new StringBuilder(value.Length);
+
+        foreach (var character in value)
+        {
+            builder.Append(FoldCharacter(character));
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// The confusions that actually happen on screen: heavy or outlined lettering, small pixel
+    /// fonts, and the shapes themselves - zero and O, one and l or I, five and S, eight and B,
+    /// two and Z, six and G. Digits and letters share a class, which no amount of zooming changes.
+    /// </summary>
+    private static char FoldCharacter(char character) => character switch
+    {
+        'o' or '0' => '0',
+        'i' or 'l' or '1' or '|' or '\u0131' => '1',
+        's' or '5' => '5',
+        'b' or '8' => '8',
+        'z' or '2' => '2',
+        'g' or '6' => '6',
+        _ => character,
+    };
 }
 
 /// <summary>A normalized string plus the source index of each of its characters.</summary>

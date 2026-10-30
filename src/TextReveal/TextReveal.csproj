@@ -10,7 +10,7 @@
     <ApplicationIcon>Assets\TextReveal.ico</ApplicationIcon>
     <AssemblyName>TextReveal</AssemblyName>
     <RootNamespace>TextReveal</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <!-- Required by the [LibraryImport] source generator (blittable P/Invoke marshalling). -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

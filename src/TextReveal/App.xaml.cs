@@ -29,6 +29,12 @@ public partial class App : Application
     /// <summary>Silent install with the defaults of the install page, for scripts.</summary>
     private const string InstallSwitch = "--install";
 
+    /// <summary>Opens the settings window at startup, used to hand over after a first install.</summary>
+    private const string SettingsSwitch = "--settings";
+
+    /// <summary>Diagnostic: read an image file and write what the OCR passes found next to it.</summary>
+    private const string ReportSwitch = "--ocr-report";
+
     private static readonly HotKeyDefinition[] FallbackHotKeys =
     [
         new(ModifierKeys.Control | ModifierKeys.Shift, Key.F),
@@ -73,6 +79,30 @@ public partial class App : Application
             return;
         }
 
+        // Diagnostic: read one image file through the real pipeline, write the report, then exit.
+        // The queries that follow the path are searched exactly as the overlay searches them.
+        if (ArgumentsAfter(e.Args, ReportSwitch) is [var imagePath, .. var queries])
+        {
+            try
+            {
+                OcrReport.Write(imagePath, queries, ConfigStore.Load().OcrLanguage);
+            }
+            catch (Exception exception) when (exception is IOException
+                or UnauthorizedAccessException
+                or NotSupportedException
+                or ArgumentException)
+            {
+                MessageBox.Show(
+                    exception.Message,
+                    "TextReveal",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+
+            Shutdown();
+            return;
+        }
+
         if (SingleInstance.TryAcquire() is not { } instance)
         {
             // Already running: ask that instance to show its window, then step aside.
@@ -84,7 +114,9 @@ public partial class App : Application
         _instance = instance;
 
         // Without config.json there is no known shortcut yet: show the window on the first run.
+        // A first install also asks the brand-new installed copy to show it (see the install page).
         var isFirstRun = !File.Exists(ConfigStore.FilePath);
+        var openSettings = IsSwitch(e.Args, SettingsSwitch);
 
         _config = ConfigStore.Load();
         _ocr.Configure(_config.OcrLanguage);
@@ -105,8 +137,10 @@ public partial class App : Application
 
             if (dialog.RestartRequired)
             {
-                // The installed copy takes over from here.
-                RelaunchInstalledCopy();
+                // The installed copy takes over from here, and a first install ends on the
+                // settings page: the shortcut, the language and the startup entry are the whole
+                // point of having installed it.
+                RelaunchInstalledCopy(dialog.FirstInstall);
                 return;
             }
         }
@@ -126,7 +160,7 @@ public partial class App : Application
             () => Dispatcher.BeginInvoke(OpenSettings),
             () => Dispatcher.BeginInvoke(ExitApplication));
 
-        if (isFirstRun)
+        if (isFirstRun || openSettings)
         {
             OpenSettings();
         }
@@ -346,7 +380,9 @@ public partial class App : Application
 
         if (dialog.RestartRequired)
         {
-            RelaunchInstalledCopy();
+            // Same rule as the first-run page: a first install opens the settings window of the
+            // copy that takes over, an update simply restarts the application.
+            RelaunchInstalledCopy(dialog.FirstInstall);
         }
     }
 
@@ -395,7 +431,10 @@ public partial class App : Application
     }
 
     /// <summary>Hands the session over to the freshly installed copy.</summary>
-    private void RelaunchInstalledCopy()
+    /// <param name="openSettings">
+    /// True to have the installed copy open its settings window, which is how a first install ends.
+    /// </param>
+    private void RelaunchInstalledCopy(bool openSettings)
     {
         // Release the instance lock first: the installed copy has to become the single instance.
         var instance = _instance;
@@ -409,7 +448,8 @@ public partial class App : Application
         _tray?.Dispose();
         _tray = null;
 
-        if (!Installer.TryStartInstalled(out var error))
+        IReadOnlyList<string> arguments = openSettings ? [SettingsSwitch] : [];
+        if (!Installer.TryStartInstalled(arguments, out var error))
         {
             MessageBox.Show(error, "TextReveal", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
@@ -419,5 +459,24 @@ public partial class App : Application
 
     private static bool IsSwitch(IEnumerable<string> arguments, string expected) =>
         arguments.Any(argument => string.Equals(argument, expected, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Every argument that follows <paramref name="expected"/>, or <c>null</c> when the switch is
+    /// absent. For the switches that take a value, like the diagnostic report.
+    /// </summary>
+    private static string[]? ArgumentsAfter(IEnumerable<string> arguments, string expected)
+    {
+        var list = arguments as IList<string> ?? [.. arguments];
+
+        for (var index = 0; index < list.Count; index++)
+        {
+            if (string.Equals(list[index], expected, StringComparison.OrdinalIgnoreCase))
+            {
+                return [.. list.Skip(index + 1)];
+            }
+        }
+
+        return null;
+    }
 }
 

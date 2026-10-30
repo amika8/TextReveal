@@ -12,7 +12,9 @@ internal static class WordMatcher
     /// </summary>
     public static List<WordMatch> Find(IReadOnlyList<RecognizedWord> words, string? query)
     {
-        var needle = CollapseSpaces(TextNormalizer.Normalize(query));
+        // Folded as well: the characters OCR mixes up (O and 0, l and 1, S and 5) must still find
+        // what the user typed, since they type what they see, not what the engine read.
+        var needle = TextNormalizer.Fold(CollapseSpaces(TextNormalizer.Normalize(query)));
         if (needle.Length == 0)
         {
             return [];
@@ -36,7 +38,7 @@ internal static class WordMatcher
 
         foreach (var word in words)
         {
-            var normalized = word.NormalizedText;
+            var normalized = word.FoldedText;
             var offset = normalized.IndexOf(needle, StringComparison.Ordinal);
 
             while (offset >= 0)
@@ -97,7 +99,7 @@ internal static class WordMatcher
             }
 
             starts[index] = builder.Length;
-            builder.Append(line[index].NormalizedText);
+            builder.Append(line[index].FoldedText);
         }
 
         return builder.ToString();
@@ -118,7 +120,7 @@ internal static class WordMatcher
         {
             var word = line[index];
             var wordStart = starts[index];
-            var wordEnd = wordStart + word.NormalizedText.Length;
+            var wordEnd = wordStart + word.FoldedText.Length;
 
             var from = Math.Max(offset, wordStart);
             var to = Math.Min(end, wordEnd);

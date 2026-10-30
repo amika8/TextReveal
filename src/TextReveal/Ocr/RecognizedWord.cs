@@ -16,6 +16,7 @@ internal sealed record RecognizedWord
         Bounds = bounds;
         LineIndex = lineIndex;
         _normalized = TextNormalizer.NormalizeWithMap(text);
+        FoldedText = TextNormalizer.Fold(_normalized.Value);
     }
 
     public string Text { get; }
@@ -23,11 +24,17 @@ internal sealed record RecognizedWord
     /// <summary>Pre-computed normalized form, so filtering never allocates per keystroke.</summary>
     public string NormalizedText => _normalized.Value;
 
+    /// <summary>
+    /// Normalized form with the characters OCR confuses folded onto one class: this is what the
+    /// search compares, so a read of <c>OOO</c> answers a search for <c>000</c>.
+    /// </summary>
+    public string FoldedText { get; }
+
     /// <summary>Source index of every normalized character, used to highlight typed letters.</summary>
     public int[] NormalizedOrigins => _normalized.Origins;
 
     public Rect Bounds { get; }
 
     /// <summary>OCR line index, used to rebuild paragraphs when copying a selection.</summary>
-    public int LineIndex { get; }
+    public int LineIndex { get; init; }
 }
