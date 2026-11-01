@@ -22,12 +22,6 @@ Press the shortcut (`Ctrl + Alt + F` by default) to freeze the screen, allowing 
   <img src="assets/select.gif" width="820" alt="Framing text on a page that refuses to be selected, then copying it">
 </p>
 
-The screen is read in several passes: once as it is, once three times bigger and contrast-stretched so
-small labels and captions clear the size below which the engine segments nothing, then twice reduced
-to its bright and to its warm lettering, which pulls heavy outlined text out of a photo (a video
-thumbnail, a poster, a game banner). The search forgives the characters OCR usually mixes up: `0` and
-`O`, `1`, `l` and `I`, `5` and `S`, `8` and `B`, `2` and `Z`, `6` and `G`.
-
 ## Download
 
 Go to [Releases](https://github.com/amika8/TextReveal/releases/latest) page and download the latest TextReveal.exe.
